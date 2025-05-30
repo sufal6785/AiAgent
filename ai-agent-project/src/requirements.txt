@@ -4,3 +4,9 @@ pandas
 scikit-learn
 tensorflow
 requests
+gradio
+langchain
+bcrypt
+flask_jwt_extended
+openai
+langchain_community

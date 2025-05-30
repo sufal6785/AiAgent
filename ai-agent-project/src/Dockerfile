@@ -11,11 +11,12 @@ WORKDIR /app
 # Create virtual environment
 RUN python3 -m venv /app/venv
 
-# Copy API server files
+# Copy API server files and requirements.txt
 COPY server.py /app/
+COPY requirements.txt /app/
 
 # Install Python dependencies in the virtual environment
-RUN /app/venv/bin/pip install --no-cache-dir flask flask-cors flask-jwt-extended bcrypt
+RUN /app/venv/bin/pip install --no-cache-dir -r /app/requirements.txt
 
 # Use virtual environment for execution
 CMD ["/app/venv/bin/python", "server.py"]
