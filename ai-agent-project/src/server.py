@@ -110,7 +110,10 @@ def execute_code_in_docker(code, language):
     except subprocess.TimeoutExpired:
         return "Execution timed out!"
 
-@app.route("/execute", methods=["POST"])
+# @app.route("/execute", methods=["POST"])
+@app.route("/", methods=["GET"])
+def home():
+    return "API is running!"
 @jwt_required()
 def execute():
     data = request.json
@@ -121,5 +124,4 @@ def execute():
     return jsonify({"output": output})
 
 if __name__ == "__main__":
-    init_db()
-    app.run(port=5000)
+    app.run(host="0.0.0.0", port=5000)
