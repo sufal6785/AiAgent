@@ -1,22 +1,40 @@
-FROM ubuntu:latest
+FROM python:3.9-slim
 
-# Install necessary system packages
-RUN apt-get update && \
-    apt-get install -y python3 python3-pip python3-venv g++ openjdk-11-jdk docker.io bash && \
-    rm -rf /var/lib/apt/lists/*
+# Install system dependencies including Docker
+RUN apt-get update && apt-get install -y \
+    docker.io \
+    gcc \
+    g++ \
+    curl \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
 
-# Create virtual environment
-RUN python3 -m venv /app/venv
+# Copy requirements first for better caching
+COPY requirements.txt .
 
-# Copy API server files and requirements.txt
-COPY server.py /app/
-COPY requirements.txt /app/
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Install Python dependencies in the virtual environment
-RUN /app/venv/bin/pip install --no-cache-dir -r /app/requirements.txt
+# Copy application code
+COPY . .
 
-# Use virtual environment for execution
-CMD ["/app/venv/bin/python", "server.py"]
+# Create data directory for SQLite database
+RUN mkdir -p /app/data
+
+# Set environment variables
+ENV FLASK_APP=app.py
+ENV FLASK_ENV=production
+ENV PYTHONPATH=/app
+
+# Expose port
+EXPOSE 5000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:5000/health || exit 1
+
+# Run the application
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "--timeout", "120", "app:app"]
